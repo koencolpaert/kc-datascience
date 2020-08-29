@@ -1,0 +1,109 @@
+---
+title: "Brussels Subway"
+subtitle: "Historical and Geographical Analysis of the Brussels Area Metro."
+author: "Koen Colpaert"
+date: "August 2017"
+output: 
+  html_document:
+  code_folding: show
+    toc: yes
+    toc_float: 
+      collapsed: false
+      smooth_scroll: false
+---
+## Intro & History
+
+I have always been a huge fan of subway systems, especially the larger ones like those in London, Paris or New York. In most cases it is the best method of transportation through a metropolitan area but it also provides an insight in the way a city evolves over time. Most subway systems start out with one -often circular- line and expand to other neighborhoods over time.
+
+Belgian cities are not the largest in the world. Not by population, not by area. So it's no surprise that most subways are very young. The origins of the Brussels metro can be found in the years before the 1958 World Fare. Although there were plans in the 1920s it wasn't until the early 50s that the first tunnels were build to bring parts of the existing "tramways" beneath the surface. This was called the "premetro" and most of the tunnels were constructed in such a way that it was easy to adapt them later on as a real subway system.
+
+It wasn't until 1969 that the first of those real subways was opened and the original plan was to have 5 different lines in the next 30 years. In 1975 the plan was changed and had the ambition to reach beyond the Brussels city limits, connecting pieces of the surrounding area. As often with those plans they proved to be unrealistic in economical terms.
+
+The current metro may be less ambitious but it still has 4 lines and some 59 or 60 subway stations (it depends wether the stations "Elisabeth" and "Simonis" are counted as 1 or 2) and even has a genuine "ghost" station that was never finished.
+
+## Source Data
+
+Data on the Brussels subway stations can be found at [wikipedia](https://en.wikipedia.org/wiki/Brussels_Metro). I used the Dutch [version](https://nl.wikipedia.org/wiki/Brusselse_metro) and [this page](https://nl.wikipedia.org/wiki/Lijst_van_Brusselse_metrostations) to compile a list of the different lines, the stations and when they were opened to the public.
+
+I guess it's possible to scrape the data but since the dataset is rather limited I just did some copy-pasting in Microsoft Excel and saved this table to CSV (subway-brussels.csv). I then read the dataset in Rstudio, indicating that the separator was a semi-colon and the first line was the header and created a dataframe called 'subways'.
+
+```subways <- read.csv("./input/subway-brussels.csv", header=TRUE, sep=";")```
+
+Excel seems to add a couple of empty columns so I told R to only use the first 5 columns that had the data
+
+```df_bxlsubs <- subways[ ,(1:5)]```
+
+Now we have a new dataframe with the names of the stations, the (primary) line they service and the inauguration date but for the sake of further analysis I want the date information split into different columns AND have some geolocation to map the stations. This is done by running
+
+
+```
+df_bxlsubs_timeloc = df_bxlsubs %>%
+  unite(geo_location, c(station, location), sep = ";", remove = FALSE) %>%
+  separate(opened, into = c("opened_month", "opened_day", "opened_year"), sep = "/") %>%
+  mutate_geocode(geo_location, source = "google")
+```
+
+We now have a dataframe called `df_bxlsubs_timeloc` and for further analysis we will write it as a persistent data file called `df_subways_bxl` with the following data
+
+| Attribute | Type | Description |
+|-------|------|-----------------------------------------------------------------------------|
+| X | numeric | sequence |
+| city | text | name of the city |
+| geo_location | text |  combination of station name and city |
+| location | text | city and country |
+| station | text | name of the station |
+| line | numeric | main line for station |
+| opened_day | numeric | day of opening |
+| opened_month | text | month of opening |
+| opened_year | numeric | year of opening |
+| lon | numeric | longitude |
+| lat | numeric | lattitude |
+
+At this point the first errors emerged. When I ran this command on my work laptop (Windows 10 64-bit, R x and Rstudio x) I received 12 errors of subway stations that Google couldn't locate and showed no geolocation data for (6 stations showed no lon-lat data so 6x2 is 12). When investigating the 6 errors there was no pattern; at first I thought it had to do with accents in the name of the stations or it was due the fact that some stations have both Dutch and French names but no logical explanation could be found. When I ran the command a second time a couple of hours later it even showed 14 errors, again with no logical explanation.
+
+Dealing with missing data is often a dark art. When you have thousands of records (observations in R lingo) you can just drop the missing ones or replace them with a dummy label but when you miss 6 out of 60 records that is a big deal. Just when I was thinking of geocoding them manually I cloned the repo on my Linux machine at home (Arch Linux 64-bit, R 3.4.1 and Rstudio 1.0.153) and ran the command a third time. Bingo! All stations where geocoded and no errors. I still have no idea what the problem was...
+
+## Analysis
+
+Now that we have a nice formatted data file we can begin with some analysis. First I made a chart of the number of stations opened by year and then by line. The original excercise by Page Piccinini used some specific versions of the `ggplot2` and `ggmap`packages. I used the regular ones but if you run into trouble it may have to do with a specific version of those packages. In that case you install `devtools` first (you should always install devtools BTW) and then you run
+
+```
+devtools::install_github("dkahle/ggmap")
+devtools::install_github("hadley/ggplot2")
+``` 
+
+Other packages needed for now are `dplyr`and `tidyr` so install those and load all packages 
+
+```
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(ggmap)
+```
+
+Now we can create the first 2 charts
+
+```
+# Subways opened by year
+ggplot(data = df_subways_bxl, aes(x = opened_year)) +
+  geom_bar(aes(fill = ..count..)) +
+  theme(legend.position = "none") +
+  xlab("Jaar van opening") + ylab("Aantal stations") + ggtitle("Geopende stations per jaar") +
+  scale_fill_gradient(low = "lightgray", high = "black")
+
+# Subways opened by Line
+ggplot(data = df_subways_bxl, aes(x = line)) +
+  geom_bar(aes(fill = ..count..)) +
+  theme(legend.position = "none") +
+  xlab("Metrolijn") + ylab("Aantal stations") + ggtitle("Geopende stations per Lijn") +
+  scale_fill_gradient(low = "lightgray", high = "black")
+```
+
+For the first chart I needed to clean the data a bit because some years showed up as YY _and_ as YYYY messing up the chart. After that I had some nice bar charts with the number of subway stations opened by year and the number of stations by line.
+Notice that there is no station that has line 4 as its main line and that there where some very productive years in building the stations.
+
+But so far for the easy part! How about plotting the stations on a map of Brussels?
+
+## Disclaimer
+
+This report was generated on `r Sys.time()`. You're encouraged to clone and adapt this repo and it's underlying code for your own purposes. 

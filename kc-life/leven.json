@@ -1,0 +1,60 @@
+{
+    "birth": "1970-08-17",
+    "periods": [
+        {
+            "name": "Rijksschool, Merelbeke",
+            "colour": "e2efdb",
+            "start": "1973-09-01",
+            "end": "1975-06-06",
+            "code": "rms"
+        }, {
+            "name": "Oefenschool Wispelberg, Gent",
+            "colour": "c7e0b6",
+            "start": "1975-09-01",
+            "end": "1982-06-06",
+            "code": "oef"
+        }, {
+            "name": "Atheneum Wispelberg, Gent",
+            "colour": "a9cf8e",
+            "start": "1982-09-01",
+            "end": "1989-06-06",
+            "code": "ath"
+        }, {
+            "name": "Universiteit Gent (Pol & Soc)",
+            "colour": "538237",
+            "start": "1989-10-01",
+            "end": "1994-07-01",
+            "code": "ug"
+        }, {
+            "name": "Vrije Universiteit Brussel (Int & Eur Recht)",
+            "colour": "1a6f75",
+            "start": "1994-10-01",
+            "end": "1995-06-30",
+            "code": "vub"
+        }, {
+            "name": "Accountancy De Wilde, diverse interims, Gent",
+            "colour": "0abbef",
+            "start": "1995-09-01",
+            "end": "1996-08-31",
+            "code": "int"
+        }, {
+            "name": "Vlaamse Overheid (AWZ, AAD, BZ), Gent en Brussel",
+            "colour": "009fe3",
+            "start": "1996-09-01",
+            "end": "2008-05-31",
+            "code": "vo1"
+        }, {
+            "name": "Element 61 (Consultancy)",
+            "colour": "FFB640",
+            "start": "2008-06-01",
+            "end": "2009-05-31",
+            "code": "e61"
+        }, {
+            "name": "Vlaamse Overheid (FB), Brussel",
+            "colour": "045185",
+            "start": "2009-06-01",
+            "end": "2020-08-31",
+            "code": "vo2"
+        }
+    ]
+}
